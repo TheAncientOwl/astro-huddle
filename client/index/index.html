@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AstroHuddle🌠</title>
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      type="text/css"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css" />
+    <link rel="stylesheet" href="index.css" />
+
+    <script src="https://cdn.socket.io/socket.io-3.0.0.js"></script>
+    <script defer src="index.js"></script>
+  </head>
+  <body>
+    <section class="hero" style="align-items: center">
+      <div class="hero-body">
+        <p class="title" style="margin-bottom: 0.25em">Astro Huddle🌙</p>
+        <p class="subtitle" style="font-style: italic">🌠 Yet another chat app</p>
+      </div>
+    </section>
+
+    <section class="section" style="display: flex; flex-direction: column; align-items: center">
+      <h1 class="title">Join a huddle!</h1>
+
+      <div  class="field" style="width: 25em">
+        <p class="control has-icons-left">
+          <input id="username-input" class="input" type="text" placeholder="Username"/>
+          <span class="icon is-small is-left">
+            <i class="fa-solid fa-user-astronaut"></i>
+          </span>
+        </p>
+      </div>
+
+      <div class="field" style="width: 25em">
+        <p class="control has-icons-left">
+          <input id="huddle-input" class="input" type="text" placeholder="HuddleName" />
+          <span class="icon is-small is-left">
+            <i class="fa-brands fa-rocketchat"></i>
+          </span>
+        </p>
+      </div>
+
+      <form action="http://localhost:5500/client/huddle/huddle.html">
+        <button id="join-huddle-bttn" class="button is-primary" style="width: 25em;" disabled>Join!</button>
+      </form>
+    </section>
+  </body>
+</html>
