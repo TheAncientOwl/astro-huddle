@@ -5,25 +5,40 @@ const huddleCodeElement = document.getElementById('huddle-code');
 const messageInputElement = document.getElementById('message-input');
 const sendMessageButton = document.getElementById('send-message-bttn');
 
-const displayMessage = (message) => {
+const displayMessage = (username, message) => {
   const element = document.createElement('li');
-  element.textContent = message;
+  element.textContent = `${username == astroHuddleVars.username ? 'YOU' : username}: ${message}`;
   document.getElementById('messages-list').appendChild(element);
 };
 
+// const hashString = async (str) => {
+//   const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+//   const hashArray = Array.from(new Uint8Array(hashBuffer)).slice(0, 16);
+//   const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+//   return hashHex.match(/.{1,4}/g).join('-');
+// };
+
 const astroHuddleVars = JSON.parse(localStorage.getItem('AstroHuddle'));
 if (astroHuddleVars != null) {
-  // huddleCodeElement.textContent = `Share code: ${astroHuddleVars.huddle}`;
+  // hashString(astroHuddleVars.huddle).then((hash) => {
+  //   astroHuddleVars.huddleHash = hash;
+  //   huddleCodeElement.textContent = `Share code: ${astroHuddleVars.huddleHash}`;
+  // });
 
   huddleTitleElement.innerHTML = `🌠 ${astroHuddleVars.huddle} Huddle`;
 
   socket.emit('message', JSON.stringify({ huddle: astroHuddleVars.huddle }));
 
-  socket.on('message', (messageJSON) => {
-    const messageObj = JSON.parse(messageJSON);
-    displayMessage(
-      `${messageObj.username === astroHuddleVars.username ? 'You' : messageObj.username}: ${messageObj.message}`
-    );
+  socket.on('message', (responseJSON) => {
+    const response = JSON.parse(responseJSON);
+
+    if ('history' in response) {
+      for (const obj of response.history) {
+        displayMessage(obj.username, obj.message);
+      }
+    } else if ('username' in response && 'message' in response) {
+      displayMessage(response.username, response.message);
+    }
   });
 
   sendMessageButton.onclick = () => {

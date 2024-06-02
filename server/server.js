@@ -4,22 +4,34 @@ const io = require('socket.io')(http, {
   cors: { origin: '*' },
 });
 
+const messagesCache = new Map();
+const connectedSockets = new Set();
+
 io.on('connection', (socket) => {
   console.log(`[INFO] A user has connected with following ID: ${socket.id}`);
 
-  socket.on('message', (messageJSON) => {
-    console.log(`[MESSAGE] Socket ${socket.id} -> ${messageJSON}`);
+  socket.on('message', (clientJSON) => {
+    console.log(`[MESSAGE] Socket ${socket.id} -> ${clientJSON}`);
 
-    const messageObj = JSON.parse(messageJSON);
+    const request = JSON.parse(clientJSON);
 
-    if ('huddle' in messageObj) {
-      socket.join(messageObj.huddle);
+    if ('huddle' in request) {
+      socket.join(request.huddle);
 
-      if ('username' in messageObj && 'message' in messageObj) {
-        io.to(messageObj.huddle).emit(
-          'message',
-          JSON.stringify({ username: messageObj.username, message: messageObj.message })
-        );
+      if (!connectedSockets.has(socket.id)) {
+        connectedSockets.add(socket.id);
+
+        if (messagesCache.has(request.huddle)) {
+          io.to(socket.id).emit('message', JSON.stringify({ history: messagesCache.get(request.huddle) }));
+        } else {
+          messagesCache.set(request.huddle, []);
+        }
+      }
+
+      if ('username' in request && 'message' in request) {
+        const message = { username: request.username, message: request.message };
+        io.to(request.huddle).emit('message', JSON.stringify(message));
+        messagesCache.get(request.huddle).push(message);
       }
     }
   });
