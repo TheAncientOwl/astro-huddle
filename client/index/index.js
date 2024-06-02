@@ -22,8 +22,6 @@ huddleInputElement.addEventListener('input', () => {
 
 const sessionConfig = JSON.parse(localStorage.getItem(AstroHuddleConfigKeys.index));
 if (sessionConfig != null) {
-  console.log('vars', sessionConfig);
-
   document.addEventListener('DOMContentLoaded', () => {
     usernameInputElement.value = sessionConfig.username;
     huddleInputElement.value = sessionConfig.huddle;
