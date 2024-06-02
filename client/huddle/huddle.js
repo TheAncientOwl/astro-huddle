@@ -1,6 +1,7 @@
 const socket = io('ws://localhost:8080');
 
 const huddleTitleElement = document.getElementById('huddle-title');
+const huddleCodeElement = document.getElementById('huddle-code');
 const messageInputElement = document.getElementById('message-input');
 const sendMessageButton = document.getElementById('send-message-bttn');
 
@@ -12,6 +13,10 @@ const displayMessage = (message) => {
 
 const astroHuddleVars = JSON.parse(localStorage.getItem('AstroHuddle'));
 if (astroHuddleVars != null) {
+    console.log(socket);
+    console.log(socket['id']);
+  huddleCodeElement.textContent = `Share code: ${socket.id}`;
+
   huddleTitleElement.innerHTML = `🌠 ${astroHuddleVars.huddle} Huddle`;
 
   socket.on('message', (messageJSON) => {

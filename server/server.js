@@ -12,6 +12,7 @@ io.on('connection', (socket) => {
 
     const messageObj = JSON.parse(messageJSON);
 
+    socket.join(messageObj.huddle);
     io.emit('message', JSON.stringify({ username: messageObj.username, message: messageObj.message }));
     console.log(JSON.stringify({ username: messageObj.username, message: messageObj.message }));
   });
