@@ -35,6 +35,10 @@ io.on('connection', (socket) => {
       }
     }
   });
+
+  socket.on('disconnect', (reason) => {
+    connectedSockets.delete(socket.id);
+  });
 });
 
 http.listen(8080, () => console.log('listening on http://localhost:8080'));
