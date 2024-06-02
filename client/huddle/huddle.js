@@ -1,35 +1,39 @@
-const socket = io('ws://localhost:8080');
+const AstroHuddleConfigKeys = {
+  index: 'AstroHuddle_Index',
+  huddle: 'AstroHuddle_Huddle',
+};
 
-window.addEventListener('beforeunload', () => {
-  localStorage.removeItem('AstroHuddle');
-});
+document.getElementById('leave-huddle-bttn').onclick = () => {
+  localStorage.removeItem(AstroHuddleConfigKeys.huddle);
+};
 
 const huddleTitleElement = document.getElementById('huddle-title');
-const huddleCodeElement = document.getElementById('huddle-code');
 const messageInputElement = document.getElementById('message-input');
 const sendMessageButton = document.getElementById('send-message-bttn');
 
-const displayMessage = (username, message) => {
+const displayMessage = (currentUsername, username, message) => {
   const element = document.createElement('li');
-  element.textContent = `${username == astroHuddleVars.username ? `${username} (You)` : username}: ${message}`;
+  element.textContent = `${username == currentUsername ? `${username} (You)` : username}: ${message}`;
   document.getElementById('messages-list').appendChild(element);
 };
 
-const astroHuddleVars = JSON.parse(localStorage.getItem('AstroHuddle'));
-if (astroHuddleVars != null) {
-  huddleTitleElement.innerHTML = `🌠 ${astroHuddleVars.huddle} Huddle`;
+const sessionConfig = JSON.parse(localStorage.getItem(AstroHuddleConfigKeys.huddle));
+if (sessionConfig != null) {
+  const socket = io('ws://localhost:8080');
 
-  socket.emit('message', JSON.stringify({ huddle: astroHuddleVars.huddle }));
+  huddleTitleElement.innerHTML = `🌠 ${sessionConfig.huddle} Huddle`;
+
+  socket.emit('message', JSON.stringify({ huddle: sessionConfig.huddle }));
 
   socket.on('message', (responseJSON) => {
     const response = JSON.parse(responseJSON);
 
     if ('history' in response) {
       for (const obj of response.history) {
-        displayMessage(obj.username, obj.message);
+        displayMessage(sessionConfig.username, obj.username, obj.message);
       }
     } else if ('username' in response && 'message' in response) {
-      displayMessage(response.username, response.message);
+      displayMessage(sessionConfig.username, response.username, response.message);
     }
   });
 
@@ -37,8 +41,8 @@ if (astroHuddleVars != null) {
     socket.emit(
       'message',
       JSON.stringify({
-        username: astroHuddleVars.username,
-        huddle: astroHuddleVars.huddle,
+        username: sessionConfig.username,
+        huddle: sessionConfig.huddle,
         message: messageInputElement.value,
       })
     );

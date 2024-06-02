@@ -25,15 +25,28 @@
       </div>
     </section>
 
-    <section class="section" style="display: flex; flex-direction: column; max-width: min(60em, 90vw); margin: 0 auto">
-      <ul id="messages-list" style="margin-bottom: 1em; display: flex; flex-direction: column; gap: 0.25em">
-      </ul>
+    <section class="section">
+      <div style="display: flex; flex-direction: column; max-width: min(60em, 90vw); margin: 0 auto 1rem auto">
+        <ul id="messages-list" style="margin-bottom: 1em; display: flex; flex-direction: column; gap: 0.25em"></ul>
 
-      <div class="grid" style="display: flex; flex-direction: row; gap: 0.5em;">
-        <div style="width: 80%;">
+        <div class="grid" style="display: flex; flex-direction: row; gap: 0.5em">
+          <div style="width: 80%">
             <textarea id="message-input" class="textarea is-small" placeholder="Message"></textarea>
+          </div>
+          <button id="send-message-bttn" class="button is-primary" style="width: 20%">Send</button>
         </div>
-        <button id="send-message-bttn" class="button is-primary" style="width: 20%;">Send</button>
+      </div>
+
+      <div style="max-width: min(60em, 90vw); margin: 0 auto">
+        <form action="http://localhost:5500/client/index/index.html">
+          <button id="leave-huddle-bttn" class="button is-small is-danger">
+            <span class="icon">
+              <!-- <i class="fab fa-github"></i> -->
+              <i class="fa-regular fa-hand-point-left"></i>
+            </span>
+            <span>Leave</span>
+          </button>
+        </form>
       </div>
     </section>
   </body>
