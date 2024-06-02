@@ -21,14 +21,19 @@ if (astroHuddleVars != null) {
   usernameInputElement.value = astroHuddleVars.username;
   huddleInputElement.value = astroHuddleVars.huddle;
   joinButton.disabled = !(astroHuddleVars.username.length !== 0 && astroHuddleVars.huddle.length !== 0);
+} else {
+  joinButton.disabled = true;
 }
 
 joinButton.onclick = () => {
-  localStorage.removeItem('AstroHuddle');
-  localStorage.setItem('AstroHuddle', JSON.stringify({
-    username: usernameInputElement.value,
-    huddle: huddleInputElement.value,
-  }));
-  console.log('Trying to join huddle');
-};
+  localStorage.setItem(
+    'AstroHuddle',
+    JSON.stringify({
+      username: usernameInputElement.value,
+      huddle: huddleInputElement.value,
+    })
+  );
 
+  usernameInputElement.value = '';
+  huddleInputElement.value = '';
+};
