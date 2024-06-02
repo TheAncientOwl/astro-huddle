@@ -13,15 +13,17 @@ const displayMessage = (message) => {
 
 const astroHuddleVars = JSON.parse(localStorage.getItem('AstroHuddle'));
 if (astroHuddleVars != null) {
-    console.log(socket);
-    console.log(socket['id']);
-  huddleCodeElement.textContent = `Share code: ${socket.id}`;
+  // huddleCodeElement.textContent = `Share code: ${astroHuddleVars.huddle}`;
 
   huddleTitleElement.innerHTML = `🌠 ${astroHuddleVars.huddle} Huddle`;
 
+  socket.emit('message', JSON.stringify({ huddle: astroHuddleVars.huddle }));
+
   socket.on('message', (messageJSON) => {
-    const messageObj = JSON.parse(messageJSON.substr(3, messageJSON.length));
-    displayMessage(`${messageObj.username}: ${messageObj.message}`);
+    const messageObj = JSON.parse(messageJSON);
+    displayMessage(
+      `${messageObj.username === astroHuddleVars.username ? 'You' : messageObj.username}: ${messageObj.message}`
+    );
   });
 
   sendMessageButton.onclick = () => {

@@ -5,16 +5,23 @@ const io = require('socket.io')(http, {
 });
 
 io.on('connection', (socket) => {
-  console.log('a user has connected');
+  console.log(`[INFO] A user has connected with following ID: ${socket.id}`);
 
   socket.on('message', (messageJSON) => {
-    console.log(messageJSON);
+    console.log(`[MESSAGE] Socket ${socket.id} -> ${messageJSON}`);
 
     const messageObj = JSON.parse(messageJSON);
 
-    socket.join(messageObj.huddle);
-    io.emit('message', JSON.stringify({ username: messageObj.username, message: messageObj.message }));
-    console.log(JSON.stringify({ username: messageObj.username, message: messageObj.message }));
+    if ('huddle' in messageObj) {
+      socket.join(messageObj.huddle);
+
+      if ('username' in messageObj && 'message' in messageObj) {
+        io.to(messageObj.huddle).emit(
+          'message',
+          JSON.stringify({ username: messageObj.username, message: messageObj.message })
+        );
+      }
+    }
   });
 });
 

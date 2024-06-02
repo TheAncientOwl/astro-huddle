@@ -1,4 +1,3 @@
-
 const joinButton = document.getElementById('join-huddle-bttn');
 const usernameInputElement = document.getElementById('username-input');
 const huddleInputElement = document.getElementById('huddle-input');
