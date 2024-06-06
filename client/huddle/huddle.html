@@ -25,10 +25,13 @@
       </div>
     </section>
 
-    <section class="section">
-      <div style="display: flex; flex-direction: column; max-width: min(60em, 90vw); margin: 0 auto 1rem auto">
-        <ul id="messages-list" style="margin-bottom: 1em; display: flex; flex-direction: column; gap: 0.25em"></ul>
+    <section
+      class="section"
+      style="max-width: min(50em, 100vw); height: 80vh; margin: 0 auto; display: flex; flex-direction: column"
+    >
+      <ul id="messages-list" class="astro-messages"></ul>
 
+      <div style="display: flex; flex-direction: column; margin: 0 auto 1rem auto; width: 100%">
         <div class="grid" style="display: flex; flex-direction: row; gap: 0.5em">
           <div style="width: 80%">
             <textarea id="message-input" class="textarea is-small" placeholder="Message"></textarea>
@@ -37,16 +40,14 @@
         </div>
       </div>
 
-      <div style="max-width: min(60em, 90vw); margin: 0 auto">
-        <form action="http://localhost:5500/client/index/index.html">
-          <button id="leave-huddle-bttn" class="button is-small is-danger">
-            <span class="icon">
-              <i class="fa-regular fa-hand-point-left"></i>
-            </span>
-            <span>Leave</span>
-          </button>
-        </form>
-      </div>
+      <form action="http://localhost:5500/client/index/index.html">
+        <button id="leave-huddle-bttn" class="button is-small is-danger">
+          <span class="icon">
+            <i class="fa-regular fa-hand-point-left"></i>
+          </span>
+          <span>Leave</span>
+        </button>
+      </form>
     </section>
   </body>
 </html>

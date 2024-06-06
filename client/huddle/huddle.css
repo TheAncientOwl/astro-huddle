@@ -1,4 +1,58 @@
 body {
   padding: 0px;
   margin: 0px;
+  overflow: hidden;
+}
+
+body::-webkit-scrollbar {
+  display: none;
+}
+
+.astro-messages {
+  margin-bottom: 1em;
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  overflow-y: scroll;
+  padding: 0em 0.75em;
+  height: 100%;
+}
+
+.astro-message {
+  background-color: #00ebc7;
+  border-radius: 5px;
+  color: #001f1a;
+  width: min(65%, 70vw);
+  padding: 0.4em 1em;
+  position: relative;
+}
+
+.astro-message .astro-message-name {
+  font-weight: bold;
+}
+
+.astro-message .astro-message-hour {
+  position: absolute;
+  font-size: x-small;
+  font-weight: bold;
+  right: 1em;
+  bottom: 0.5em;
+}
+
+.astro-message .astro-message-message {
+  word-wrap: break-word;
+  padding-right: 2.5em;
+  padding-left: 0em;
+}
+
+.astro-message.is-current-user {
+  background-color: #66d1ff;
+  color: #142433;
+  align-self: flex-end;
+  text-align: right;
+}
+
+.astro-message.is-current-user .astro-message-message {
+  padding-right: 2.5em;
+  padding-left: 0em;
 }
