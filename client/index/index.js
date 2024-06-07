@@ -1,51 +1,71 @@
-const AstroHuddleConfigKeys = {
-  index: 'AstroHuddle_Index',
-  huddle: 'AstroHuddle_Huddle',
-};
+class InputValidator {
+  #usernameOK = false;
+  #huddleOK = false;
 
-const joinButton = document.getElementById('join-huddle-bttn');
-const usernameInputElement = document.getElementById('username-input');
-const huddleInputElement = document.getElementById('huddle-input');
-
-let usernameOk = false;
-let huddleOk = false;
-
-usernameInputElement.addEventListener('input', () => {
-  usernameOk = usernameInputElement.value.length !== 0;
-  joinButton.disabled = !(usernameOk && huddleOk);
-});
-
-huddleInputElement.addEventListener('input', () => {
-  huddleOk = huddleInputElement.value.length !== 0;
-  joinButton.disabled = !(usernameOk && huddleOk);
-});
-
-const sessionConfig = JSON.parse(localStorage.getItem(AstroHuddleConfigKeys.index));
-if (sessionConfig != null) {
-  document.addEventListener('DOMContentLoaded', () => {
-    usernameInputElement.value = sessionConfig.username;
-    huddleInputElement.value = sessionConfig.huddle;
-
-    joinButton.disabled = !(sessionConfig.username.length !== 0 && sessionConfig.huddle.length !== 0);
-  });
-} else {
-  joinButton.disabled = true;
+  isOK = () => this.#usernameOK && this.#huddleOK;
+  isNOK = () => !this.isOK();
+  username = value => {
+    this.#usernameOK = value.length !== 0;
+    return this;
+  };
+  huddle = value => {
+    this.#huddleOK = value.length !== 0;
+    return this;
+  };
 }
 
-joinButton.onclick = () => {
-  const setVars = (key) => {
+const LocalStorageKeys = {
+  data: 'AstroHuddle_Data',
+};
+
+const IndexVars = {
+  sessionConfig: JSON.parse(localStorage.getItem(LocalStorageKeys.data)),
+  validator: new InputValidator(),
+  elements: {
+    joinButton: undefined,
+    username: undefined,
+    huddle: undefined,
+  },
+};
+
+const onDOMContentLoaded = () => {
+  IndexVars.elements.joinButton = document.getElementById('join-huddle-bttn');
+  IndexVars.elements.username = document.getElementById('username-input');
+  IndexVars.elements.huddle = document.getElementById('huddle-input');
+
+  if (IndexVars.sessionConfig != null) {
+    const { username: usernameElement, huddle: huddleElement, joinButton } = IndexVars.elements;
+    const { username, huddle } = IndexVars.sessionConfig;
+
+    usernameElement.value = username;
+    usernameElement.textContent = username;
+
+    huddleElement.value = huddle;
+    huddleElement.textContent = huddle;
+
+    joinButton.disabled = IndexVars.validator.username(username).huddle(huddle).isNOK();
+  } else {
+    IndexVars.elements.joinButton.disabled = true;
+  }
+
+  const { username: usernameElement, huddle: huddleElement, joinButton } = IndexVars.elements;
+  const { validator } = IndexVars;
+
+  usernameElement.addEventListener(
+    'input',
+    () => (joinButton.disabled = validator.username(usernameElement.value).isNOK())
+  );
+
+  huddleElement.addEventListener('input', () => (joinButton.disabled = validator.huddle(huddleElement.value).isNOK()));
+
+  joinButton.onclick = () =>
     localStorage.setItem(
-      key,
+      LocalStorageKeys.data,
       JSON.stringify({
-        username: usernameInputElement.value,
-        huddle: huddleInputElement.value,
+        username: usernameElement.value,
+        huddle: huddleElement.value,
       })
     );
-  };
-
-  setVars(AstroHuddleConfigKeys.index);
-  setVars(AstroHuddleConfigKeys.huddle);
-
-  usernameInputElement.value = '';
-  huddleInputElement.value = '';
 };
+
+window.addEventListener('DOMContentLoaded', onDOMContentLoaded);

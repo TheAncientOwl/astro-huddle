@@ -1,17 +1,4 @@
-const AstroHuddleConfigKeys = {
-  index: 'AstroHuddle_Index',
-  huddle: 'AstroHuddle_Huddle',
-};
-
-document.getElementById('leave-huddle-bttn').onclick = () => {
-  localStorage.removeItem(AstroHuddleConfigKeys.huddle);
-};
-
-const huddleTitleElement = document.getElementById('huddle-title');
-const messageInputElement = document.getElementById('message-input');
-const sendMessageButton = document.getElementById('send-message-bttn');
-
-function formatTimeFromTimestamp(timestamp) {
+const formatTimeFromTimestamp = timestamp => {
   const date = new Date(timestamp);
   let hours = date.getHours();
   const minutes = date.getMinutes();
@@ -19,94 +6,145 @@ function formatTimeFromTimestamp(timestamp) {
 
   hours = hours % 12;
   hours = hours ? hours : 12; // The hour '0' should be '12'
-  const padZero = num => num.toString().padStart(2, '0');
-  const formattedMinutes = padZero(minutes);
+  const formattedMinutes = minutes.toString().padStart(2, '0');
 
   return `${hours}:${formattedMinutes} ${ampm}`;
-}
+};
+
+const LocalStorageKeys = {
+  data: 'AstroHuddle_Data',
+};
+
+const HuddleVars = {
+  sessionConfig: JSON.parse(localStorage.getItem(LocalStorageKeys.data)),
+  socket: undefined,
+  elements: {
+    title: undefined,
+    message: undefined,
+    sendMessageButton: undefined,
+    messagesList: undefined,
+  },
+};
 
 const displayMessage = (time, currentUsername, username, message, patch = false) => {
-  const element = document.createElement('li');
-  element.classList.add('astro-message');
+  const createElement = (type, className, textContent = null) => {
+    const element = document.createElement(type);
+    element.classList.add(className);
 
-  const name = document.createElement('div');
-  name.classList.add('astro-message-name');
+    if (textContent != null) {
+      element.textContent = textContent;
+    }
 
-  const messageElement = document.createElement('div');
-  messageElement.classList.add('astro-message-message');
-  messageElement.textContent = message;
+    return element;
+  };
 
-  const hour = document.createElement('div');
-  hour.classList.add('astro-message-hour');
-  hour.textContent = formatTimeFromTimestamp(time);
+  const isCurrentUser = username === currentUsername;
 
-  for (const el of [name, messageElement, hour]) {
-    element.appendChild(el);
-  }
+  const messageElement = createElement('li', 'astro-message');
+  const usernameElement = createElement('div', 'astro-message-name', username);
+  const textElement = createElement('div', 'astro-message-message', message);
+  const hourElement = createElement('div', 'astro-message-hour', formatTimeFromTimestamp(time));
 
   if (username === currentUsername) {
-    name.textContent = 'You';
-    element.classList.add('is-current-user');
-  } else {
-    name.textContent = username;
+    messageElement.classList.add('is-current-user');
+    usernameElement.textContent = 'You';
   }
 
-  const messagesListElement = document.getElementById('messages-list');
+  for (const element of [usernameElement, textElement, hourElement]) {
+    messageElement.appendChild(element);
+  }
 
   if (patch === false) {
-    messagesListElement.appendChild(element);
-    element.scrollIntoView({ behavior: 'smooth' });
+    HuddleVars.elements.messagesList.appendChild(messageElement);
+    messageElement.scrollIntoView({ behavior: 'smooth' });
   } else {
-    messagesListElement.insertBefore(element, messagesListElement.firstChild);
+    HuddleVars.elements.messagesList.insertBefore(messageElement, HuddleVars.elements.messagesList.firstChild);
   }
 };
 
-const sessionConfig = JSON.parse(localStorage.getItem(AstroHuddleConfigKeys.huddle));
-if (sessionConfig != null) {
-  const socket = io('ws://localhost:8080');
+const handleHistory = ({ history }) => {
+  for (const { time, username, message } of history) {
+    displayMessage(time, HuddleVars.sessionConfig.username, username, message);
+  }
+};
 
-  huddleTitleElement.innerHTML = `🌠 ${sessionConfig.huddle} Huddle`;
+const handlePatchHistory = ({ patchHistory }) => {
+  for (let index = patchHistory.length - 1; index >= 0; index--) {
+    displayMessage(
+      patchHistory[index].time,
+      HuddleVars.sessionConfig.username,
+      patchHistory[index].username,
+      patchHistory[index].message,
+      true
+    );
+  }
+};
 
-  socket.emit('message', JSON.stringify({ huddle: sessionConfig.huddle }));
+const handleMessage = ({ time, username, message }) => {
+  displayMessage(time, HuddleVars.sessionConfig.username, username, message);
+};
 
-  socket.on('message', responseJSON => {
-    const response = JSON.parse(responseJSON);
+const sendUserMessage = () => {
+  const { message: messageElement } = HuddleVars.elements;
+  const { socket } = HuddleVars;
+  const { username, huddle } = HuddleVars.sessionConfig;
 
-    if ('history' in response) {
-      for (const obj of response.history) {
-        displayMessage(obj.time, sessionConfig.username, obj.username, obj.message);
+  if (messageElement.value.length != 0) {
+    socket.emit(
+      'message',
+      JSON.stringify({
+        username,
+        huddle,
+        message: messageElement.value,
+        time: new Date().getTime(),
+      })
+    );
+
+    messageElement.value = '';
+  }
+};
+
+const onDOMContentLoaded = () => {
+  HuddleVars.elements.title = document.getElementById('huddle-title');
+  HuddleVars.elements.message = document.getElementById('message-input');
+  HuddleVars.elements.sendMessageButton = document.getElementById('send-message-bttn');
+  HuddleVars.elements.messagesList = document.getElementById('messages-list');
+
+  if (HuddleVars.sessionConfig != null) {
+    const { username, huddle } = HuddleVars.sessionConfig;
+    const { sendMessageButton, message: messageElement, title: titleElement } = HuddleVars.elements;
+
+    titleElement.innerHTML = `🌠 ${huddle} Huddle`;
+
+    HuddleVars.socket = io('ws://localhost:8080');
+    const { socket } = HuddleVars;
+
+    socket.emit('message', JSON.stringify({ huddle }));
+
+    socket.on('message', responseJSON => {
+      const response = JSON.parse(responseJSON);
+      if ('history' in response) {
+        handleHistory(response);
+      } else if ('patchHistory' in response) {
+        handlePatchHistory(response);
+      } else if ('username' in response && 'message' in response && 'time' in response) {
+        handleMessage(response);
+      } else {
+        console.warn(`Received unknown response from server: ${responseJSON}`);
       }
-    } else if ('patchHistory' in response) {
-      for (let index = response.patchHistory.length - 1; index >= 0; index--) {
-        displayMessage(
-          response.patchHistory[index].time,
-          sessionConfig.username,
-          response.patchHistory[index].username,
-          response.patchHistory[index].message,
-          true
-        );
-      }
-    } else if ('username' in response && 'message' in response && 'time' in response) {
-      displayMessage(response.time, sessionConfig.username, response.username, response.message);
-    }
-  });
+    });
 
-  sendMessageButton.onclick = () => {
-    if (messageInputElement.value.length != 0) {
-      socket.emit(
-        'message',
-        JSON.stringify({
-          username: sessionConfig.username,
-          huddle: sessionConfig.huddle,
-          message: messageInputElement.value,
-          time: new Date().getTime(),
-        })
-      );
+    sendMessageButton.onclick = sendUserMessage;
+  } else {
+    HuddleVars.elements.title.innerHTML = `🌠 Unknown Huddle :(`;
+    HuddleVars.elements.sendMessageButton.disabled = true;
+  }
+};
 
-      messageInputElement.value = '';
-    }
-  };
-} else {
-  huddleTitleElement.innerHTML = `🌠 Unknown Huddle :(`;
-  sendMessageButton.disabled = true;
-}
+window.addEventListener('DOMContentLoaded', onDOMContentLoaded);
+
+document.addEventListener('keyup', ({ key }) => {
+  if (key === 'Enter' && HuddleVars.elements.sendMessageButton.disabled === false) {
+    sendUserMessage();
+  }
+});

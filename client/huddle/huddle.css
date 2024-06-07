@@ -35,13 +35,13 @@ body::-webkit-scrollbar {
   position: absolute;
   font-size: x-small;
   font-weight: bold;
-  right: 1em;
+  right: 0.8em;
   bottom: 0.5em;
 }
 
 .astro-message .astro-message-message {
   word-wrap: break-word;
-  padding-right: 2.5em;
+  padding-right: 2.6em;
   padding-left: 0em;
 }
 
@@ -53,6 +53,30 @@ body::-webkit-scrollbar {
 }
 
 .astro-message.is-current-user .astro-message-message {
-  padding-right: 2.5em;
+  padding-right: 2.6em;
   padding-left: 0em;
+}
+
+/* The entire scrollbar */
+::-webkit-scrollbar {
+  width: 10px; /* Width of the scrollbar */
+  height: 10px; /* Height of the scrollbar for horizontal scroll */
+}
+
+/* The scrollbar track (background) */
+::-webkit-scrollbar-track {
+  background: #f0f0f0; /* Light gray background */
+  border-radius: 10px; /* Rounded corners */
+}
+
+/* The scrollbar thumb (the draggable part) */
+::-webkit-scrollbar-thumb {
+  background: #888; /* Gray color */
+  border-radius: 10px; /* Rounded corners */
+  border: 2px solid #f0f0f0; /* To give space around the thumb */
+}
+
+/* Hover effect on the scrollbar thumb */
+::-webkit-scrollbar-thumb:hover {
+  background: #555; /* Darker gray */
 }

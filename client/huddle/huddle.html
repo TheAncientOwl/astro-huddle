@@ -20,23 +20,28 @@
 
   <body>
     <section class="hero" style="align-items: center">
-      <div class="hero-body">
-        <p id="huddle-title" class="title" style="margin-bottom: 0.25em">🌠 Huddle</p>
+      <div class="hero-body" style="padding: 2em 2em 1em 2em">
+        <p id="huddle-title" class="title" style="margin-bottom: 0.25em; font-size: 2em">🌠 Huddle</p>
       </div>
     </section>
 
     <section
       class="section"
-      style="max-width: min(50em, 100vw); height: 80vh; margin: 0 auto; display: flex; flex-direction: column"
+      style="max-width: min(50em, 100vw); height: 87.5vh; margin: 0 auto; display: flex; flex-direction: column"
     >
       <ul id="messages-list" class="astro-messages"></ul>
 
       <div style="display: flex; flex-direction: column; margin: 0 auto 1rem auto; width: 100%">
         <div class="grid" style="display: flex; flex-direction: row; gap: 0.5em">
           <div style="width: 80%">
-            <textarea id="message-input" class="textarea is-small" placeholder="Message"></textarea>
+            <input id="message-input" type="text" class="input is-info" placeholder="Message"></input>
           </div>
-          <button id="send-message-bttn" class="button is-primary" style="width: 20%">Send</button>
+          <button id="send-message-bttn" class="button is-info" style="width: 20%">
+            <span class="icon">
+              <i class="fa-brands fa-rocketchat"></i>
+            </span>
+            <span>Send</span>
+            </button>
         </div>
       </div>
 
