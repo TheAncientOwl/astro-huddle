@@ -25,7 +25,7 @@ function formatTimeFromTimestamp(timestamp) {
   return `${hours}:${formattedMinutes} ${ampm}`;
 }
 
-const displayMessage = (time, currentUsername, username, message) => {
+const displayMessage = (time, currentUsername, username, message, patch = false) => {
   const element = document.createElement('li');
   element.classList.add('astro-message');
 
@@ -39,7 +39,6 @@ const displayMessage = (time, currentUsername, username, message) => {
   const hour = document.createElement('div');
   hour.classList.add('astro-message-hour');
   hour.textContent = formatTimeFromTimestamp(time);
-  // hour.textContent = time;
 
   for (const el of [name, messageElement, hour]) {
     element.appendChild(el);
@@ -52,8 +51,14 @@ const displayMessage = (time, currentUsername, username, message) => {
     name.textContent = username;
   }
 
-  document.getElementById('messages-list').appendChild(element);
-  element.scrollIntoView({ behavior: 'smooth' });
+  const messagesListElement = document.getElementById('messages-list');
+
+  if (patch === false) {
+    messagesListElement.appendChild(element);
+    element.scrollIntoView({ behavior: 'smooth' });
+  } else {
+    messagesListElement.insertBefore(element, messagesListElement.firstChild);
+  }
 };
 
 const sessionConfig = JSON.parse(localStorage.getItem(AstroHuddleConfigKeys.huddle));
@@ -70,6 +75,16 @@ if (sessionConfig != null) {
     if ('history' in response) {
       for (const obj of response.history) {
         displayMessage(obj.time, sessionConfig.username, obj.username, obj.message);
+      }
+    } else if ('patchHistory' in response) {
+      for (let index = response.patchHistory.length - 1; index >= 0; index--) {
+        displayMessage(
+          response.patchHistory[index].time,
+          sessionConfig.username,
+          response.patchHistory[index].username,
+          response.patchHistory[index].message,
+          true
+        );
       }
     } else if ('username' in response && 'message' in response && 'time' in response) {
       displayMessage(response.time, sessionConfig.username, response.username, response.message);
