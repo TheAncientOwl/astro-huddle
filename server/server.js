@@ -1,18 +1,21 @@
-const {
+import {
   setupLunarDB,
   loadHuddleFromDB,
   insertHuddleIntoDB,
   updateHuddleHistoryDB,
-  AstroDB_Config,
   Insert,
   Select,
-} = require('./lunardb');
+} from './lunardb.js';
+
+import { Logger, LogLevel } from './Logger.js';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 
 const lunardb = setupLunarDB();
 
-const http = require('http').createServer();
+const httpServer = createServer();
 
-const io = require('socket.io')(http, {
+const io = new Server(httpServer, {
   cors: { origin: '*' },
 });
 
@@ -30,10 +33,10 @@ setInterval(() => {
 
 io.on('connection', socket => {
   const socketID = socket.id;
-  console.log(`[INFO] A user has connected with following ID: ${socketID}`);
+  Logger.info(`SocketID(${socketID}) -> Connected`);
 
   socket.on('message', clientJSON => {
-    console.log(`[MESSAGE-RECEIVED] Socket ${socketID} -> ${clientJSON}`);
+    Logger.info(`SocketID(${socketID}) -> Received message ${clientJSON}`);
 
     const request = JSON.parse(clientJSON);
 
@@ -61,9 +64,7 @@ io.on('connection', socket => {
               // 2. select to get the ID
               loadHuddleFromDB(huddle, huddlesData => {
                 for (const huddleData of huddlesData) {
-                  const { _rid } = huddleData;
-
-                  huddleToRID.set(huddle, _rid);
+                  huddleToRID.set(huddle, huddleData._rid);
                 }
               });
             });
@@ -99,8 +100,9 @@ io.on('connection', socket => {
   });
 
   socket.on('disconnect', reason => {
+    Logger.info(`SocketID(${socketID}) -> Disconnected`);
     connectedSockets.delete(socketID);
   });
 });
 
-http.listen(8080, () => console.log('[INFO] Listening on http://localhost:8080'));
+httpServer.listen(8080, () => Logger.info(`Listening on https://localhost:8080`));

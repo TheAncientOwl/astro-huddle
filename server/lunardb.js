@@ -1,6 +1,7 @@
-const { LunarDB, QueryBuilders } = require('lunardb-js');
-const Update = require('lunardb-js/src/query-builders/Update');
-const { Database, Schema, Create, Insert, Select } = QueryBuilders;
+import { LunarDB, QueryBuilders } from 'lunardb-js';
+const { Database, Schema, Create, Insert, Select, Update } = QueryBuilders;
+
+import { Logger, LogLevel } from './Logger.js';
 
 let lunardb = undefined;
 
@@ -11,23 +12,24 @@ const AstroDB_Config = {
 };
 
 const setupLunarDB = () => {
+  Logger.info('Setting up connection on ws://127.0.0.1:8083');
   lunardb = new LunarDB('127.0.0.1', 8083);
 
   lunardb.connect();
 
   const onDatabaseConnect = () => {
-    console.log('[INFO-DB] Connected to database');
+    Logger.info('Connected to LunarDB');
 
     // setup database
     lunardb
       .query(new Database().name(AstroDB_Config.databaseName).isCreate())
       .then(result => {
-        console.log(`[INFO-DB] ${result}`);
+        Logger.database(result);
 
         return lunardb.query(new Database().name(AstroDB_Config.databaseName).isUse());
       })
       .then(result => {
-        console.log(`[INFO-DB] ${result}`);
+        Logger.database(result);
 
         return lunardb.query(
           new Schema()
@@ -37,17 +39,17 @@ const setupLunarDB = () => {
         );
       })
       .then(result => {
-        console.log(`[INFO-DB] ${result}`);
+        Logger.database(result);
 
         return lunardb.query(
           new Create().name(AstroDB_Config.collectionName).schema(AstroDB_Config.schemaName).isDocument()
         );
       })
       .then(result => {
-        console.log(`[INFO-DB] ${result}`);
+        Logger.database(result);
       })
       .catch(err => {
-        console.error(`[ERROR-DB] ${err}`);
+        Logger.database(`[ERROR] ${err}`);
       });
 
     lunardb.removeOnConnectListener(onDatabaseConnect);
@@ -64,12 +66,12 @@ const insertHuddleIntoDB = (huddle, history, afterInsertedCallback) => {
       new Insert().into(AstroDB_Config.collectionName).addObject({ huddle, history: `%%${JSON.stringify(history)}%%` })
     )
     .then(queryResult => {
-      console.log(`[INFO-DB] On inserting huddle ${huddle} -> ${queryResult}`);
+      Logger.database(`Huddle(${huddle}) insert result: ${queryResult}`);
 
       afterInsertedCallback();
     })
     .catch(err => {
-      console.error(`[ERROR-DB] ${err}`);
+      Logger.database(`[ERROR] ${err}`);
     });
 };
 
@@ -79,25 +81,28 @@ const loadHuddleFromDB = (huddle, huddlesDataCallback) => {
       new Select().from(AstroDB_Config.collectionName).addField('_rid').addField('history').where(`huddle == ${huddle}`)
     )
     .then(queryResult => {
-      huddlesDataCallback(JSON.parse(queryResult.replace(/%%/g, '')).selection);
+      const selection = JSON.parse(queryResult.replace(/%%/g, '')).selection;
+      Logger.database(`Loadded huddle ${huddle}, ${selection.length} messages`);
+      huddlesDataCallback(selection);
     })
     .catch(err => {
-      console.log(`[ERROR-DB] ${err}`);
+      Logger.database(`[ERROR] ${err}`);
     });
 };
 const updatingHuddleIDs = new Set();
 
 const updateHuddleHistoryDB = async (huddleID, history) => {
   if (history.length === 0) {
-    console.log(`[STORAGE-DB] Not saving empty huddle(${huddleID})`);
-    return;
-  }
-  if (updatingHuddleIDs.has(huddleID)) {
-    console.log(`[STORAGE-DB] Already saving huddle(${huddleID})`);
+    Logger.info(`HuddleID(${huddleID}) -> Has empty history, not saving`);
     return;
   }
 
-  console.log(`[STORAGE-DB] Saving huddle(${huddleID}) history (${history.length} entries)`);
+  if (updatingHuddleIDs.has(huddleID)) {
+    Logger.info(`HuddleID(${huddleID}) -> Already under saving process`);
+    return;
+  }
+
+  Logger.info(`HuddleID(${huddleID}) -> Saving process started, ${history.length} messages on going`);
 
   updatingHuddleIDs.add(huddleID);
 
@@ -109,20 +114,12 @@ const updateHuddleHistoryDB = async (huddleID, history) => {
         .addModify({ field: 'history', expression: `%%${JSON.stringify(history)}%%` })
     )
     .then(result => {
-      console.log(`[STORAGE-DB] On saving ${huddleID} -> ${result}`);
+      Logger.database(`Update HuddleID(${huddleID}) query result: ${result}`);
       updatingHuddleIDs.delete(huddleID);
     })
     .catch(err => {
-      console.error(`[ERROR-DB] ${err}`);
+      Logger.database(`[ERROR] ${err}`);
     });
 };
 
-module.exports = {
-  setupLunarDB,
-  updateHuddleHistoryDB,
-  insertHuddleIntoDB,
-  loadHuddleFromDB,
-  AstroDB_Config,
-  Select,
-  Insert,
-};
+export { setupLunarDB, updateHuddleHistoryDB, insertHuddleIntoDB, loadHuddleFromDB, Select, Insert };

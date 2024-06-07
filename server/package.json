@@ -10,8 +10,10 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "chalk": "^5.3.0",
     "lunardb-js": "^1.4.0",
     "nodemon": "^3.1.2",
     "socket.io": "^4.7.5"
-  }
+  },
+  "type": "module"
 }
